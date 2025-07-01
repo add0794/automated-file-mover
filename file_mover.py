@@ -13,6 +13,17 @@ EMAIL_SENDER = os.getenv("EMAIL_SENDER")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
 def send_email_notification(source, destination, recipient):
+    """
+    Send an email notification about a file/folder move operation.
+
+    Args:
+        source (Path): The source path that was moved
+        destination (Path): The destination path where the item was moved to
+        recipient (str): Email address of the recipient
+
+    Raises:
+        smtplib.SMTPException: If there's an error sending the email
+    """
     time_str = datetime.now().strftime("%B %d, %Y at %I:%M %p")
     subject = f"Moved '{source.name}' to '{destination}'"
     body = (
@@ -33,8 +44,14 @@ def send_email_notification(source, destination, recipient):
         smtp.send_message(msg)
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Move files or directories and optionally notify via email")
-    parser.add_argument("source", help="Source file or directory")
+    """
+    Parse command line arguments for the file mover.
+
+    Returns:
+        argparse.Namespace: Parsed command line arguments
+    """
+    parser = argparse.ArgumentParser(description="Move files or directories with optional email notifications")
+    parser.add_argument("source", help="Source file or directory to move")
     parser.add_argument("destination", help="Destination path")
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output")
     parser.add_argument("-f", "--force", action="store_true", help="Force overwrite if destination exists")
@@ -42,6 +59,19 @@ def parse_args():
     return parser.parse_args()
 
 def move_path(source: Path, destination: Path, force: bool, verbose: bool):
+    """
+    Move a file or directory from source to destination.
+
+    Args:
+        source (Path): Source path to move
+        destination (Path): Destination path
+        force (bool): If True, overwrite destination if it exists
+        verbose (bool): If True, print detailed output
+
+    Raises:
+        FileNotFoundError: If source path does not exist
+        FileExistsError: If destination exists and force is False
+    """
     if not source.exists():
         raise FileNotFoundError(f"Source path '{source}' does not exist.")
 
@@ -57,6 +87,14 @@ def move_path(source: Path, destination: Path, force: bool, verbose: bool):
         print("Move completed successfully")
 
 def main():
+    """
+    Main entry point for the file mover.
+
+    Parses arguments and performs the file/directory move operation.
+
+    Returns:
+        int: Exit code (0 for success, 1 for failure)
+    """
     args = parse_args()
     source = Path(args.source)
     destination = Path(args.destination)
