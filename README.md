@@ -1,6 +1,6 @@
 # Automated File Mover
 
-A Python-based file organization system that watches a designated directory and automatically moves files to specified locations.
+A Python-based file organization system that watches a designated directory and automatically moves files to specified locations. 
 
 ## Features
 
@@ -82,3 +82,21 @@ MIT License
 ## Support
 
 For support, please open an issue in the GitHub repository.
+
+## Using fswatch Directly
+
+You can also use fswatch directly to monitor changes in your WatchZone directory:
+
+```bash
+# Watch for changes in WatchZone directory
+fswatch -r ~/WatchZone
+
+# Watch for specific events
+fswatch -r -e "\.git" ~/WatchZone  # Exclude .git directory
+
+# Watch for specific file types
+fswatch -r -i "\.txt$" ~/WatchZone  # Watch only .txt files
+```
+
+For more options and usage examples, see the fswatch documentation:
+https://github.com/emcrisostomo/fswatch/wiki
