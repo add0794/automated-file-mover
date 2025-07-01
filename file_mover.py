@@ -6,13 +6,14 @@ from email.message import EmailMessage
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+from typing import Optional
 
 load_dotenv()
 
-EMAIL_SENDER = os.getenv("EMAIL_SENDER")
-EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
+EMAIL_SENDER: Optional[str] = os.getenv("EMAIL_SENDER")
+EMAIL_PASSWORD: Optional[str] = os.getenv("EMAIL_PASSWORD")
 
-def send_email_notification(source, destination, recipient):
+def send_email_notification(source: Path, destination: Path, recipient: str) -> None:
     """
     Send an email notification about a file/folder move operation.
 
@@ -43,7 +44,7 @@ def send_email_notification(source, destination, recipient):
         smtp.login(EMAIL_SENDER, EMAIL_PASSWORD)
         smtp.send_message(msg)
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     """
     Parse command line arguments for the file mover.
 
@@ -58,7 +59,7 @@ def parse_args():
     parser.add_argument("--email", nargs="?", const=True, help="Send email notification (optionally specify recipient)")
     return parser.parse_args()
 
-def move_path(source: Path, destination: Path, force: bool, verbose: bool):
+def move_path(source: Path, destination: Path, force: bool, verbose: bool) -> None:
     """
     Move a file or directory from source to destination.
 
@@ -86,7 +87,7 @@ def move_path(source: Path, destination: Path, force: bool, verbose: bool):
     if verbose:
         print("Move completed successfully")
 
-def main():
+def main() -> int:
     """
     Main entry point for the file mover.
 
