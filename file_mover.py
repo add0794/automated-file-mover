@@ -11,9 +11,8 @@ load_dotenv()
 
 EMAIL_SENDER = os.getenv("EMAIL_SENDER")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
-EMAIL_RECIPIENT = os.getenv("EMAIL_RECIPIENT")
 
-def send_email_notification(source, destination):
+def send_email_notification(source, destination, recipient):
     time_str = datetime.now().strftime("%B %d, %Y at %I:%M %p")
     subject = f"Moved '{source.name}' to '{destination}'"
     body = (
@@ -26,7 +25,7 @@ def send_email_notification(source, destination):
     msg = EmailMessage()
     msg["Subject"] = subject
     msg["From"] = EMAIL_SENDER
-    msg["To"] = EMAIL_RECIPIENT
+    msg["To"] = recipient
     msg.set_content(body)
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
@@ -39,7 +38,7 @@ def parse_args():
     parser.add_argument("destination", help="Destination path")
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output")
     parser.add_argument("-f", "--force", action="store_true", help="Force overwrite if destination exists")
-    parser.add_argument("--email", action="store_true", help="Send email notification after moving")
+    parser.add_argument("--email", nargs="?", const=True, help="Send email notification (optionally specify recipient)")
     return parser.parse_args()
 
 def move_path(source: Path, destination: Path, force: bool, verbose: bool):
@@ -66,7 +65,10 @@ def main():
         move_path(source, destination, args.force, args.verbose)
 
         if args.email:
-            send_email_notification(source, destination)
+            recipient = args.email if isinstance(args.email, str) else input("📧 Enter recipient email address: ").strip()
+            if not recipient:
+                raise ValueError("Recipient email address is required when using --email")
+            send_email_notification(source, destination, recipient)
 
     except Exception as e:
         print(f"Error: {e}")
@@ -75,5 +77,4 @@ def main():
     return 0
 
 if __name__ == "__main__":
-    import sys
-    sys.exit(main())
+    exit(main())
