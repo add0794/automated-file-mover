@@ -1,4 +1,4 @@
-🗂# Automated File Watcher
+# 🗂 Automated File Watcher
 
 A Python script that watches a directory (~/WatchZone) for new files or folders, prompts the user for a destination path, and moves the items with optional email notifications.
 
