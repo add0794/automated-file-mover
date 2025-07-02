@@ -1,4 +1,3 @@
 venv
 watch_home.log
 .env
-watch_home_and_prompt.py
