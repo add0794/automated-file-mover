@@ -1,64 +1,101 @@
-# Automated File Mover
+🗂# Automated File Watcher
 
-A Python-based file organization system that watches a designated directory and automatically moves files to specified locations. 
+A Python script that watches a directory (~/WatchZone) for new files or folders, prompts the user for a destination path, and moves the items with optional email notifications.
 
 ## Features
 
-- Watches a specified directory for new files/folders
-- Interactive prompt for moving files to desired locations
-- Retry mechanism for failed moves
-- Comprehensive logging
-- Handles both files and directories
-- Skips system folders and hidden files
-- Python-based implementation with modern libraries
+- 🔄 Real-time file and folder monitoring
+- 📦 Interactive destination path selection
+- 📧 Optional email notifications
+- 🛡️ Robust error handling via subprocess
+- 📄 Works for both files and directories
+- 📝 Comprehensive logging to file and console
+- 💡 Unicode emoji support for clear feedback
+- 🧹 Clean exit on Ctrl+C or user input
+- 🔐 Uses .env for secure credentials
 
 ## Installation
 
-1. Clone the repository:
 ```bash
-git clone https://github.com/add0794/automated-file-mover.git
-cd automated-file-mover
+git clone https://github.com/add0794/automated-file-watcher.git
+cd automated-file-watcher
 ```
 
-2. Create and activate a virtual environment:
 ```bash
+# Create and activate virtual environment
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-3. Install dependencies:
 ```bash
+# Install dependencies
 pip install -r requirements.txt
 ```
 
 ## Usage
 
-1. Create the watch directory (if it doesn't exist):
+1. Ensure the watch directory exists:
+
 ```bash
 mkdir -p ~/WatchZone
 ```
 
-2. Run the watcher:
+2. Start the watcher:
+
 ```bash
 python watch_home_and_prompt.py
 ```
 
-The script will start watching the `~/WatchZone` directory. When new files or folders appear:
-1. You'll be prompted to specify a destination path inside your home directory
-2. The script will attempt to move the file/folder
-3. If the move fails, you'll be asked if you want to try again with a different destination
+## How It Works
+
+1. The script monitors ~/WatchZone for new files/folders
+2. When something appears:
+   - You'll be prompted to choose a destination in your home directory
+   - Options:
+     - Type a relative path (e.g., Documents/notes)
+     - Press Enter to skip
+     - Type 'exit' to quit
+   - You'll be asked if you'd like to receive an email notification
+   - The file will be moved using file_mover.py
+   - Success/failure will be logged and shown in the terminal
 
 ## Configuration
 
-The script watches the `~/WatchZone` directory by default. This can be changed by modifying the `WATCH_DIR` variable in `watch_home_and_prompt.py`.
+Create a `.env` file in the project root with:
+
+```ini
+EMAIL_SENDER=your-email@example.com
+EMAIL_PASSWORD=your-app-specific-password
+```
+
+These credentials are used to send email notifications via SMTP (e.g., Gmail with app passwords).
 
 ## Logging
 
-The script logs all operations to `watch_home.log` in the project directory. The log includes:
+All events are logged to both:
+- `watch_home.log` file
+- Console output
+
+Log details include:
 - Timestamps
-- Operation status (success/failure)
-- Retry attempts
-- User interactions
+- File/folder detection
+- Destination paths
+- Move status (success/failure)
+- Error details (if any)
+
+## Error Handling
+
+- Invalid emails are rejected
+- File move failures are logged with detailed output
+- Subprocess errors are safely handled
+- Unicode emoji are used for clarity
+- Signal interruptions (Ctrl+C) are caught and safely terminated
+
+## Exit Options
+
+You can stop the watcher by:
+- Typing 'exit' when prompted
+- Pressing Ctrl+C in the terminal
 
 ## Requirements
 
@@ -66,6 +103,23 @@ The script logs all operations to `watch_home.log` in the project directory. The
 - Required packages (listed in requirements.txt):
   - watchdog
   - python-dotenv
+
+## Optional: Using fswatch Directly
+
+If you prefer to monitor file changes outside Python:
+
+```bash
+# Watch recursively
+fswatch -r ~/WatchZone
+
+# Exclude .git directory
+fswatch -r -e "\.git" ~/WatchZone
+
+# Watch only .txt files
+fswatch -r -i "\.txt$" ~/WatchZone
+```
+
+For more options, see: https://github.com/emcrisostomo/fswatch/wiki
 
 ## License
 
@@ -82,21 +136,3 @@ MIT License
 ## Support
 
 For support, please open an issue in the GitHub repository.
-
-## Using fswatch Directly
-
-You can also use fswatch directly to monitor changes in your WatchZone directory:
-
-```bash
-# Watch for changes in WatchZone directory
-fswatch -r ~/WatchZone
-
-# Watch for specific events
-fswatch -r -e "\.git" ~/WatchZone  # Exclude .git directory
-
-# Watch for specific file types
-fswatch -r -i "\.txt$" ~/WatchZone  # Watch only .txt files
-```
-
-For more options and usage examples, see the fswatch documentation:
-https://github.com/emcrisostomo/fswatch/wiki
