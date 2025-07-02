@@ -85,7 +85,7 @@ def move_path(source: Path, destination: Path, force: bool, verbose: bool) -> No
     shutil.move(str(source), str(destination))
 
     if verbose:
-        print("Move completed successfully")
+        print("Move completed successfully.")
 
 def main() -> int:
     """
