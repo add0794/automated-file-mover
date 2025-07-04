@@ -112,7 +112,7 @@ class PathWatcher(FileSystemEventHandler):
                 continue
 
             args = [
-            "python3", "file_mover.py",
+            "python3", "file_folder_writer.py",
             str(path), str(dest),
             "--verbose"
             ]
