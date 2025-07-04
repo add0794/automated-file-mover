@@ -1,3 +1,4 @@
 venv
 watch_home.log
 .env
+.DS_Store
