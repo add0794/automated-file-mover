@@ -1,3 +1,22 @@
+"""
+FileManager: A class-based Python utility for handling file and folder operations
+similar to basic shell commands — with added support for email notifications,
+zip compression, and built-in error handling.
+
+Supports:
+- File and folder creation
+- Move, rename, delete, copy
+- View contents of file or directory
+- Zip folders
+- Send files via email
+- Notify about file/folder status
+
+Example usage:
+    fm = FileManager()
+    fm.create_file("notes.txt", content="hello")
+    fm.move("notes.txt", "archive/")
+"""
+
 import shutil
 import smtplib
 from pathlib import Path
@@ -8,6 +27,9 @@ import os
 
 class FileManager:
     def __init__(self, base_dir: Path = Path.home()):
+        """
+        Initialize FileManager with a base directory (defaults to user's home).
+        """
         self.base_dir = base_dir
 
     # ────────────────────────────────
@@ -15,6 +37,12 @@ class FileManager:
     # ────────────────────────────────
 
     def create_folder(self, name: str) -> Path:
+        """
+        Create a new folder inside the base directory.
+
+        Raises:
+            FileExistsError: if the folder already exists.
+        """
         folder_path = self.base_dir / name
         if folder_path.exists():
             raise FileExistsError(f"Folder '{folder_path}' already exists.")
@@ -22,6 +50,12 @@ class FileManager:
         return folder_path
 
     def create_file(self, name: str, content: Optional[str] = None, remove_chars: Optional[str] = None) -> Path:
+        """
+        Create a file with optional content and optional characters to remove from that content.
+
+        Raises:
+            FileExistsError: if the file already exists.
+        """
         file_path = self.base_dir / name
         if file_path.exists():
             raise FileExistsError(f"File '{file_path}' already exists.")
@@ -37,6 +71,9 @@ class FileManager:
     # ────────────────────────────────
 
     def move(self, source: str, destination: str) -> Path:
+        """
+        Move a file or folder from source to destination.
+        """
         src = self.base_dir / source
         dst = self.base_dir / destination
         if not src.exists():
@@ -47,6 +84,9 @@ class FileManager:
         return dst
 
     def rename(self, old: str, new: str) -> Path:
+        """
+        Rename a file or folder.
+        """
         src = self.base_dir / old
         dst = self.base_dir / new
         if not src.exists():
@@ -55,6 +95,9 @@ class FileManager:
         return dst
 
     def copy(self, source: str, destination: str) -> Path:
+        """
+        Copy a file or folder.
+        """
         src = self.base_dir / source
         dst = self.base_dir / destination
         if src.is_dir():
@@ -68,6 +111,12 @@ class FileManager:
     # ────────────────────────────────
 
     def zip_folder(self, folder_name: str) -> Path:
+        """
+        Zip the contents of a folder.
+
+        Returns:
+            Path to the .zip file.
+        """
         folder_path = self.base_dir / folder_name
         if not folder_path.is_dir():
             raise NotADirectoryError(f"'{folder_path}' is not a folder.")
@@ -80,6 +129,9 @@ class FileManager:
     # ────────────────────────────────
 
     def delete(self, name: str) -> None:
+        """
+        Delete a file or folder (recursively if folder).
+        """
         path = self.base_dir / name
         if not path.exists():
             raise FileNotFoundError(f"'{path}' does not exist.")
@@ -89,6 +141,9 @@ class FileManager:
             path.unlink()
 
     def view(self, name: str) -> str:
+        """
+        Return contents of a file, or list contents of a folder.
+        """
         path = self.base_dir / name
         if not path.exists():
             raise FileNotFoundError(f"'{path}' does not exist.")
@@ -104,6 +159,9 @@ class FileManager:
     # ────────────────────────────────
 
     def email_file_or_folder(self, name: str, recipient: str, sender: str, password: str) -> None:
+        """
+        Email a file or zipped folder to a recipient.
+        """
         path = self.base_dir / name
         if not path.exists():
             raise FileNotFoundError(f"'{path}' does not exist.")
@@ -124,6 +182,9 @@ class FileManager:
             smtp.send_message(msg)
 
     def email_notification(self, name: str, recipient: str, sender: str, password: str) -> None:
+        """
+        Send an email notification about the presence or status of a file or folder.
+        """
         path = self.base_dir / name
         if not path.exists():
             raise FileNotFoundError(f"'{path}' does not exist.")
