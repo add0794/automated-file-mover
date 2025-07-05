@@ -11,13 +11,16 @@ Example usage:
     python cli.py create-folder Archive
     python cli.py move notes.txt Archive/
     python cli.py rename oldname.txt newname.txt
+    python cli.py zip my_project_folder
     python cli.py delete Archive/notes.txt
     python cli.py view Archive/notes.txt
+    python cli.py copy notes.txt backup/notes.txt
 
     With email:
     python cli.py move notes.txt Archive/ --email --sender me@example.com --recipient you@example.com
 """
 
+from pathlib import Path
 import argparse
 from manager import FileManager
 import getpass
@@ -41,39 +44,50 @@ def main():
     parser = argparse.ArgumentParser(description="FileManager CLI utility")
     subparsers = parser.add_subparsers(dest="command")
 
-    # Create file
+    # Create command
     create_file = subparsers.add_parser("create-file", help="Create a new file")
     create_file.add_argument("name", help="File name")
     create_file.add_argument("--text", help="Optional file content")
     create_file.add_argument("--remove", help="Characters to remove from content")
     add_common_args(create_file)
 
-    # Create folder
+    # Create command
     create_folder = subparsers.add_parser("create-folder", help="Create a new folder")
     create_folder.add_argument("name", help="Folder name")
     add_common_args(create_folder)
 
-    # Move
+    # Move command
     move = subparsers.add_parser("move", help="Move a file or folder")
     move.add_argument("source", help="Source path")
     move.add_argument("destination", help="Destination path")
     add_common_args(move)
 
-    # Rename
+    # Rename command
     rename = subparsers.add_parser("rename", help="Rename a file or folder")
     rename.add_argument("old", help="Old path")
     rename.add_argument("new", help="New path")
     add_common_args(rename)
 
-    # Delete
+    # Zip command
+    zip_parser = subparsers.add_parser("zip", help="Zip a file or folder")
+    zip_parser.add_argument("source", help="File or folder to zip")
+    zip_parser.add_argument("--output", help="Optional zip file name")
+    add_common_args(zip_parser)
+
+    # Delete command
     delete = subparsers.add_parser("delete", help="Delete a file or folder")
     delete.add_argument("name", help="File or folder to delete")
     add_common_args(delete)
-
-    # View
+    # View command
     view = subparsers.add_parser("view", help="View contents of a file or folder")
     view.add_argument("name", help="File or folder to view")
     add_common_args(view)
+
+    # Copy command
+    copy_parser = subparsers.add_parser("copy", help="Copy a file or folder")
+    copy_parser.add_argument("source", help="Path to the file or folder to copy")
+    copy_parser.add_argument("destination", help="Destination path")
+    add_common_args(copy_parser)
 
     args = parser.parse_args()
     fm = FileManager()
@@ -93,8 +107,16 @@ def main():
             print(f"🚚 Moved to: {result}")
         elif args.command == "rename":
             result = fm.rename(args.old, args.new)
-            logger.info(f"Renamed {args.old} to {result}", extra={"operation": "cli_rename"})
-            print(f"✏️ Renamed to: {result}")
+            if Path(args.new).is_dir():
+                msg = f"📂 Moved into folder: {result}"
+            else:
+                msg = f"✏️ Renamed to: {result}"
+            logger.info(msg, extra={"operation": "cli_rename"})
+            print(msg)
+        elif args.command == "zip":
+            result = fm.zip(args.source, args.output)
+            logger.info(f"Zipped {args.source} to {result}", extra={"operation": "cli_zip"})
+            print(f"🗜️ Zipped to: {result}")
         elif args.command == "delete":
             fm.delete(args.name)
             logger.info(f"Deleted: {args.name}", extra={"operation": "cli_delete"})
@@ -103,6 +125,10 @@ def main():
             content = fm.view(args.name)
             logger.info(f"Viewed: {args.name}", extra={"operation": "cli_view"})
             print(content)
+        elif args.command == "copy":
+            result = fm.copy(args.source, args.destination)
+            logger.info(f"Copied {args.source} to {result}", extra={"operation": "cli_copy"})
+            print(f"✅ Copied to: {result}")
         else:
             parser.print_help()
             return
