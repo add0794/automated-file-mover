@@ -114,20 +114,6 @@ All operations are logged with:
 
 Logs are written to both console and file for easy debugging and audit trails.
 
-## 📝 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
-
 ---
 
 ## 📋 Project Structure
@@ -139,6 +125,16 @@ automated-file-mover/
 ├── watcher.py          # Watchdog implementation
 └── .gitignore          # Git ignore rules
 ```
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a new Pull Request
 
 ---
 
