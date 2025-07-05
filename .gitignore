@@ -4,3 +4,4 @@ __pycache__/
 .pytest_cache
 tests/
 .ruff_cache
+logger.py
