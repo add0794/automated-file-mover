@@ -1,138 +1,117 @@
-# 🗂 Automated File Watcher
+# 🗂 Automated File & Folder Manager (Python)
 
-A Python script that watches a directory (~/WatchZone) for new files or folders, prompts the user for a destination path, and moves the items with optional email notifications.
+A safer, smarter alternative to using the shell for basic file and folder operations. This Python tool handles file creation, renaming, moving, deleting, zipping, and more — with built-in logging, error handling, and optional email notifications.
 
-## Features
+---
 
-- 🔄 Real-time file and folder monitoring
-- 📦 Interactive destination path selection
-- 📧 Optional email notifications
-- 🛡️ Robust error handling via subprocess
-- 📄 Works for both files and directories
-- 📝 Comprehensive logging to file and console
-- 💡 Unicode emoji support for clear feedback
-- 🧹 Clean exit on Ctrl+C or user input
-- 🔐 Uses .env for secure credentials
+## ✅ Why use this?
 
-## Installation
+The shell is powerful — but also error-prone. One typo or wrong working directory and you've:
+- Deleted the wrong file
+- Overwritten important data
+- Broken a path without knowing it
 
-```bash
-git clone https://github.com/add0794/automated-file-watcher.git
-cd automated-file-watcher
-```
+This tool wraps core shell actions in a Python class (`FileManager`) that provides:
+- 📦 Clear APIs for file/folder operations
+- ✅ Safe error handling with helpful exceptions
+- 🔐 Optional email notifications on file actions
+- 📜 Logging to file and console
+- 📡 Watchdog support for automatic reactions to file system events
+- 📁 Modular CLI interface for power users
 
-```bash
-# Create and activate virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+---
 
-```bash
-# Install dependencies
-pip install -r requirements.txt
-```
+## 🛠 Features
 
-## Usage
+### Core Commands
+- Create empty files or files with text
+- Remove characters from files
+- Create folders
+- Move or rename files/folders
+- Delete files/folders
+- View file content
+- Zip folders
+- Copy files/folders (coming soon)
+- Email file/folder (as attachment or notification)
 
-1. Ensure the watch directory exists:
+### Bonus Features
+- 🕵️‍♀️ File system monitoring with `watchdog`
+- 🧪 Unit-testable architecture
+- 📨 Optional email alerts per command
+- 🧩 CLI modularity with `argparse subcommands`
 
-```bash
-mkdir -p ~/WatchZone
-```
+---
 
-2. Start the watcher:
-
-```bash
-python watch_home_and_prompt.py
-```
-
-## How It Works
-
-1. The script monitors ~/WatchZone for new files/folders
-2. When something appears:
-   - You'll be prompted to choose a destination in your home directory
-   - Options:
-     - Type a relative path (e.g., Documents/notes)
-     - Press Enter to skip
-     - Type 'exit' to quit
-   - You'll be asked if you'd like to receive an email notification
-   - The file will be moved using file_mover.py
-   - Success/failure will be logged and shown in the terminal
-
-## Configuration
-
-Create a `.env` file in the project root with:
-
-```ini
-EMAIL_SENDER=your-email@example.com
-EMAIL_PASSWORD=your-app-specific-password
-```
-
-These credentials are used to send email notifications via SMTP (e.g., Gmail with app passwords).
-
-## Logging
-
-All events are logged to both:
-- `watch_home.log` file
-- Console output
-
-Log details include:
-- Timestamps
-- File/folder detection
-- Destination paths
-- Move status (success/failure)
-- Error details (if any)
-
-## Error Handling
-
-- Invalid emails are rejected
-- File move failures are logged with detailed output
-- Subprocess errors are safely handled
-- Unicode emoji are used for clarity
-- Signal interruptions (Ctrl+C) are caught and safely terminated
-
-## Exit Options
-
-You can stop the watcher by:
-- Typing 'exit' when prompted
-- Pressing Ctrl+C in the terminal
-
-## Requirements
-
-- Python 3.8+
-- Required packages (listed in requirements.txt):
-  - watchdog
-  - python-dotenv
-
-## Optional: Using fswatch Directly
-
-If you prefer to monitor file changes outside Python:
+## 🚀 Example Usage (CLI)
 
 ```bash
-# Watch recursively
-fswatch -r ~/WatchZone
+# Create a new file with text
+python cli.py create-file notes.txt --text "Hello there!"
 
-# Exclude .git directory
-fswatch -r -e "\.git" ~/WatchZone
+# Create a file and remove characters
+python cli.py create-file notes.txt --text "Hello there!" --remove "there"
 
-# Watch only .txt files
-fswatch -r -i "\.txt$" ~/WatchZone
+# Create a new folder
+python cli.py create-folder Archive
+
+# Move a file with email notification
+python cli.py move notes.txt Archive/ --email --sender you@example.com --recipient you@example.com
+
+# Rename a file
+python cli.py rename oldname.txt newname.txt
+
+# Delete a file
+python cli.py delete Archive/notes.txt
+
+# View file contents
+python cli.py view Archive/notes.txt
 ```
 
-For more options, see: https://github.com/emcrisostomo/fswatch/wiki
+---
 
-## License
+## 📦 Installation
 
-MIT License
+1. Clone this repository
+2. Install dependencies:
+   ```bash
+   pip install watchdog python-dotenv
+   ```
 
-## Contributing
+---
+
+## 📝 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a new Pull Request
 
-## Support
+---
 
-For support, please open an issue in the GitHub repository.
+## 📋 Project Structure
+
+```
+automated-file-mover/
+├── cli.py              # Main CLI interface
+├── manager.py          # Core FileManager class
+├── watcher.py          # Watchdog implementation
+├── .gitignore          # Git ignore rules
+└── tests/              # Test directory
+```
+
+---
+
+## 🔍 About
+
+This project was created as a safer alternative to shell commands for basic file operations. It's designed to be extensible and maintainable while providing robust error handling and logging.
+
+## 📢 Note
+
+This project is actively maintained. Please check the latest version for any updates or improvements. PRs welcome! This is built to grow.
