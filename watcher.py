@@ -1,40 +1,152 @@
+""" 
+watcher.py - Interactive file watcher for WatchZone.
+
+📌 Description:
+This script monitors the ~/WatchZone directory for new files or folders.
+When a new item is detected, it prompts the user with a menu of actions
+like move, copy, zip, rename, delete, or email — and automates those using `cli.py`.
+
+Please note: This script only acts on files or folders created in the WatchZone directory and those that have just been created. It does not act on files or folders that have already already in the WatchZone directory.
+
+✅ How to run:
+$ python3 watcher.py
+
+Make sure `cli.py` and all related commands are implemented and available in the same directory.
+"""
+
+import os
+import time
+import subprocess
+from pathlib import Path
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-from pathlib import Path
-import time
-import logging
 
-class FileWatcher(FileSystemEventHandler):
-    def __init__(self, watch_dir: Path, file_manager: FileManager):
-        self.watch_dir = watch_dir
-        self.file_manager = file_manager
-        self.observer = Observer()
+# Directory to monitor
+WATCH_DIR = Path.home() / "WatchZone"
+WATCH_DIR.mkdir(exist_ok=True)
 
-    def start(self):
-        logging.info(f"👀 Watching directory: {self.watch_dir}")
-        self.observer.schedule(self, str(self.watch_dir), recursive=True)
-        self.observer.start()
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            self.observer.stop()
-            logging.info("🛑 Stopped watcher.")
-        self.observer.join()
+class InteractiveWatcher(FileSystemEventHandler):
+    """
+    A Watchdog event handler that prompts the user to act on newly created files/folders.
+    """
 
     def on_created(self, event):
+        """
+        Triggered when a new file or directory is created in the watch directory.
+        """
         path = Path(event.src_path)
+        if not path.exists():
+            return
+
         if path.is_file():
-            logging.info(f"📄 File created: {path.name}")
-            # Optional: read or move the file
+            print(f"\n📄 File detected: {path.name}")
         elif path.is_dir():
-            logging.info(f"📁 Folder created: {path.name}")
+            print(f"\n📁 Folder detected: {path.name}")
 
-    def on_moved(self, event):
-        src = Path(event.src_path)
-        dst = Path(event.dest_path)
-        logging.info(f"🚚 Moved: {src.name} → {dst.name}")
+        self.prompt_user_action(path)
 
-    def on_deleted(self, event):
-        path = Path(event.src_path)
-        logging.info(f"❌ Deleted: {path.name}")
+    def prompt_user_action(self, path: Path):
+        """
+        Present a menu to the user for actions to take on the new file/folder.
+        Retries if an error occurs.
+        """
+        actions = [
+            "1. Move",
+            "2. Rename",
+            "3. Zip",
+            "4. Delete",
+            "5. View",
+            "6. Copy",
+            "7. Email",
+            "8. Skip"
+        ]
+
+        while True:
+            print("What would you like to do?")
+            for action in actions:
+                print(action)
+
+            choice = input("\nEnter choice [1-8]: ").strip()
+
+            try:
+                if choice == "1":  # Move
+                    dest = input("Move to (absolute or ~ path): ").strip()
+                    subprocess.run([
+                        "python3", "cli.py", "move", str(path), str(Path(dest).expanduser())
+                    ], check=True)
+                    print(f"👀 Watching: {WATCH_DIR.resolve()}")
+
+                elif choice == "2":  # Rename
+                    new_name = input("Rename to: ").strip()
+                    subprocess.run([
+                        "python3", "cli.py", "rename", str(path), new_name
+                    ], check=True)
+                    print(f"👀 Watching: {WATCH_DIR.resolve()}")
+
+                elif choice == "3":  # Zip
+                    subprocess.run([
+                        "python3", "cli.py", "zip", str(path)
+                    ], check=True)
+
+                elif choice == "4":  # Delete
+                    subprocess.run([
+                        "python3", "cli.py", "delete", str(path)
+                    ], check=True)
+                    print(f"👀 Watching: {WATCH_DIR.resolve()}")
+
+                elif choice == "5":  # View
+                    subprocess.run([
+                        "python3", "cli.py", "view", str(path)
+                    ], check=True)
+                    print(f"👀 Watching: {WATCH_DIR.resolve()}")
+
+                elif choice == "6":  # Copy
+                    dest = input("Copy to (absolute or ~ path): ").strip()
+                    subprocess.run([
+                        "python3", "cli.py", "copy", str(path), str(Path(dest).expanduser())
+                    ], check=True)
+                    print(f"👀 Watching: {WATCH_DIR.resolve()}")
+
+                elif choice == "7":  # Email
+                    sender = input("Sender email: ").strip()
+                    recipient = input("Recipient email: ").strip()
+                    subprocess.run([
+                        "python3", "cli.py", "email",
+                        str(path), "--sender", sender, "--recipient", recipient
+                    ], check=True)
+                    print(f"👀 Watching: {WATCH_DIR.resolve()}")
+
+                elif choice == "8":  # Skip
+                    print("⏭️ Skipped.\n")
+                    print(f"👀 Watching: {WATCH_DIR.resolve()}")
+
+                else:
+                    print("❌ Invalid choice. Please enter a number from 1 to 8.")
+                    continue 
+                
+                break               
+
+            except KeyboardInterrupt:
+                print("\n🛑 Stopping watcher.")
+                os._exit(0)
+
+def start_watching():
+    """
+    Start the file watcher and keep listening for new files/folders.
+    """
+
+    print(f"👀 Watching: {WATCH_DIR.resolve()}")
+    observer = Observer()
+    event_handler = InteractiveWatcher()
+    observer.schedule(event_handler, str(WATCH_DIR), recursive=True)
+    observer.start()
+
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("\n🛑 Stopping watcher.")
+        os._exit(0)
+
+if __name__ == "__main__":
+    start_watching()
