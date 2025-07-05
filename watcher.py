@@ -18,6 +18,7 @@ import os
 import time
 import subprocess
 from pathlib import Path
+from logger import logger
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
@@ -37,6 +38,8 @@ class InteractiveWatcher(FileSystemEventHandler):
         path = Path(event.src_path)
         if not path.exists():
             return
+
+        logger.info(f"Created file: {path}")
 
         if path.is_file():
             print(f"\n📄 File detected: {path.name}")
@@ -74,14 +77,16 @@ class InteractiveWatcher(FileSystemEventHandler):
                     subprocess.run([
                         "python3", "cli.py", "move", str(path), str(Path(dest).expanduser())
                     ], check=True)
-                    print(f"👀 Watching: {WATCH_DIR.resolve()}")
+                    logger.info(f"Watching: {self.WATCH_DIR.resolve()}")
+                    print(f"👀 Watching: {self.WATCH_DIR.resolve()}")
 
                 elif choice == "2":  # Rename
                     new_name = input("Rename to: ").strip()
                     subprocess.run([
                         "python3", "cli.py", "rename", str(path), new_name
                     ], check=True)
-                    print(f"👀 Watching: {WATCH_DIR.resolve()}")
+                    logger.info(f"Watching: {self.WATCH_DIR.resolve()}")
+                    print(f"👀 Watching: {self.WATCH_DIR.resolve()}")
 
                 elif choice == "3":  # Zip
                     subprocess.run([
@@ -92,20 +97,23 @@ class InteractiveWatcher(FileSystemEventHandler):
                     subprocess.run([
                         "python3", "cli.py", "delete", str(path)
                     ], check=True)
-                    print(f"👀 Watching: {WATCH_DIR.resolve()}")
+                    logger.info(f"Watching: {self.WATCH_DIR.resolve()}")
+                    print(f"👀 Watching: {self.WATCH_DIR.resolve()}")
 
                 elif choice == "5":  # View
                     subprocess.run([
                         "python3", "cli.py", "view", str(path)
                     ], check=True)
-                    print(f"👀 Watching: {WATCH_DIR.resolve()}")
+                    logger.info(f"Watching: {self.WATCH_DIR.resolve()}")
+                    print(f"👀 Watching: {self.WATCH_DIR.resolve()}")
 
                 elif choice == "6":  # Copy
                     dest = input("Copy to (absolute or ~ path): ").strip()
                     subprocess.run([
                         "python3", "cli.py", "copy", str(path), str(Path(dest).expanduser())
                     ], check=True)
-                    print(f"👀 Watching: {WATCH_DIR.resolve()}")
+                    logger.info(f"Watching: {self.WATCH_DIR.resolve()}")
+                    print(f"👀 Watching: {self.WATCH_DIR.resolve()}")
 
                 elif choice == "7":  # Email
                     sender = input("Sender email: ").strip()
@@ -114,13 +122,17 @@ class InteractiveWatcher(FileSystemEventHandler):
                         "python3", "cli.py", "email",
                         str(path), "--sender", sender, "--recipient", recipient
                     ], check=True)
-                    print(f"👀 Watching: {WATCH_DIR.resolve()}")
+                    logger.info(f"Watching: {self.WATCH_DIR.resolve()}")
+                    print(f"👀 Watching: {self.WATCH_DIR.resolve()}")
 
                 elif choice == "8":  # Skip
+                    logger.info("Skipped")
                     print("⏭️ Skipped.\n")
-                    print(f"👀 Watching: {WATCH_DIR.resolve()}")
+                    logger.info(f"Watching: {self.WATCH_DIR.resolve()}")
+                    print(f"👀 Watching: {self.WATCH_DIR.resolve()}")
 
                 else:
+                    logger.error("Invalid choice. Please enter a number from 1 to 8.")
                     print("❌ Invalid choice. Please enter a number from 1 to 8.")
                     continue 
                 
@@ -135,6 +147,7 @@ def start_watching():
     Start the file watcher and keep listening for new files/folders.
     """
 
+    logger.info(f"Watching: {WATCH_DIR.resolve()}")
     print(f"👀 Watching: {WATCH_DIR.resolve()}")
     observer = Observer()
     event_handler = InteractiveWatcher()
@@ -145,8 +158,12 @@ def start_watching():
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
+        logger.info("Watcher stopped by user")
         print("\n🛑 Stopping watcher.")
         os._exit(0)
+    except Exception as e:
+        logger.error(f"Error: {str(e)}")
+        print("❌ Error occurred. Let's try again.")
 
 if __name__ == "__main__":
     start_watching()
