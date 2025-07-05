@@ -4,7 +4,7 @@ A safer, smarter alternative to using the shell for basic file and folder operat
 
 ---
 
-## ✅ Why use this?
+## ✅ A Need for Error-Free File & Folder Operations
 
 The shell is powerful — but also error-prone. One typo or wrong working directory and you've:
 - Deleted the wrong file
@@ -14,9 +14,9 @@ The shell is powerful — but also error-prone. One typo or wrong working direct
 This tool wraps core shell actions in a Python class (`FileManager`) that provides:
 - 📦 Clear APIs for file/folder operations
 - ✅ Safe error handling with helpful exceptions
-- 🔐 Optional email notifications on file actions
+- 🔐 Optional email notifications to file/folder events
 - 📜 Logging to file and console
-- 📡 Watchdog support for automatic reactions to file system events
+- 📡 Watchdog support for automatic reactions to file/folder events
 - 📁 Modular CLI interface for power users
 
 ---
@@ -31,14 +31,34 @@ This tool wraps core shell actions in a Python class (`FileManager`) that provid
 - Delete files/folders
 - View file content
 - Zip folders
-- Copy files/folders (coming soon)
+- Copy files/folders
 - Email file/folder (as attachment or notification)
 
 ### Bonus Features
-- 🕵️‍♀️ File system monitoring with `watchdog`
+- 🕵️‍♀️ File/folder monitoring with `watchdog`
 - 🧪 Unit-testable architecture
 - 📨 Optional email alerts per command
 - 🧩 CLI modularity with `argparse subcommands`
+
+---
+
+## 📦 Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/add0794/automated-file-mover.git
+cd automated-file-mover
+```
+
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Create the WatchZone directory:
+```bash
+mkdir -p ~/WatchZone
+```
 
 ---
 
@@ -67,17 +87,32 @@ python cli.py delete Archive/notes.txt
 python cli.py view Archive/notes.txt
 ```
 
----
+## 📁 File Watcher
 
-## 📦 Installation
+The file watcher monitors the `~/WatchZone` directory for new files and folders. When a new item is detected, it will:
+1. Display the detected item
+2. Present a menu of actions:
+   - Move
+   - Rename
+   - Zip
+   - Delete
+   - View
+   - Copy
+   - Email
+   - Skip
+3. Execute the chosen action
+4. Continue watching for new items
 
-1. Clone this repository
-2. Install dependencies:
-   ```bash
-   pip install watchdog python-dotenv
-   ```
+## 📝 Logging
 
----
+All operations are logged with:
+- Timestamps
+- Operation type
+- File paths
+- Success/failure status
+- Error details (if any)
+
+Logs are written to both console and file for easy debugging and audit trails.
 
 ## 📝 License
 
@@ -102,15 +137,10 @@ automated-file-mover/
 ├── cli.py              # Main CLI interface
 ├── manager.py          # Core FileManager class
 ├── watcher.py          # Watchdog implementation
-├── .gitignore          # Git ignore rules
-└── tests/              # Test directory
+└── .gitignore          # Git ignore rules
 ```
 
 ---
-
-## 🔍 About
-
-This project was created as a safer alternative to shell commands for basic file operations. It's designed to be extensible and maintainable while providing robust error handling and logging.
 
 ## 📢 Note
 
