@@ -35,25 +35,6 @@ class FileManager:
     # 🔧 Creation Methods
     # ────────────────────────────────
 
-    def create_folder(self, name: str) -> Path:
-        """
-        Create a new folder inside the base directory.
-
-        Raises:
-            FileExistsError: if the folder already exists.
-        """
-        folder_path = self.base_dir / name
-        try:
-            if folder_path.exists():
-                logger.error(f"Failed to create folder: {folder_path}", extra={"operation": "create_folder"})
-                raise FileExistsError(f"Folder '{folder_path}' already exists.")
-            folder_path.mkdir()
-            logger.info(f"Created folder: {folder_path}", extra={"operation": "create_folder"})
-            return folder_path
-        except Exception as e:
-            logger.error(f"Error creating folder: {str(e)}", extra={"operation": "create_folder"})
-            raise
-
     def create_file(self, name: str, content: Optional[str] = None, remove_chars: Optional[str] = None) -> Path:
         """
         Create a file with optional content and optional characters to remove from that content.
@@ -77,8 +58,27 @@ class FileManager:
             logger.error(f"Error creating file: {str(e)}", extra={"operation": "create_file"})
             raise
 
+    def create_folder(self, name: str) -> Path:
+        """
+        Create a new folder inside the base directory.
+
+        Raises:
+            FileExistsError: if the folder already exists.
+        """
+        folder_path = self.base_dir / name
+        try:
+            if folder_path.exists():
+                logger.error(f"Failed to create folder: {folder_path}", extra={"operation": "create_folder"})
+                raise FileExistsError(f"Folder '{folder_path}' already exists.")
+            folder_path.mkdir()
+            logger.info(f"Created folder: {folder_path}", extra={"operation": "create_folder"})
+            return folder_path
+        except Exception as e:
+            logger.error(f"Error creating folder: {str(e)}", extra={"operation": "create_folder"})
+            raise
+
     # ────────────────────────────────
-    # 🚚 Move / Rename / Copy
+    # 🚚 Move / Rename / Zip / Copy
     # ────────────────────────────────
 
     def move(self, source: str, destination: str) -> Path:
@@ -107,23 +107,51 @@ class FileManager:
 
     def rename(self, old: str, new: str) -> Path:
         """
-        Rename a file or folder.
+        Rename a file or folder. If 'new' is an existing directory,
+        the item will be moved inside it using the same name.
         """
         src = self.base_dir / old
-        dst = self.base_dir / new
+        dst = src.parent / new
+
         try:
             if not src.exists():
                 logger.error(f"Source not found: {src}", extra={"operation": "rename"})
                 raise FileNotFoundError(f"Source '{src}' does not exist.")
-            if dst.exists():
+
+            if dst.is_dir():
+                # Move source into the folder, keeping original name
+                dst = dst / src.name
+            elif dst.exists():
                 logger.error(f"Destination exists: {dst}", extra={"operation": "rename"})
                 raise FileExistsError(f"Destination '{dst}' already exists.")
-            
+
             src.rename(dst)
             logger.info(f"Renamed {src} to {dst}", extra={"operation": "rename"})
             return dst
+
         except Exception as e:
             logger.error(f"Error renaming {src} to {dst}: {str(e)}", extra={"operation": "rename"})
+            raise
+
+    def zip_folder(self, folder_name: str) -> Path:
+        """
+        Zip the contents of a folder.
+
+        Returns:
+            Path to the .zip file.
+        """
+        folder_path = self.base_dir / folder_name
+        try:
+            if not folder_path.is_dir():
+                logger.error(f"Not a directory: {folder_path}", extra={"operation": "zip_folder"})
+                raise NotADirectoryError(f"'{folder_path}' is not a folder.")
+            
+            zip_path = folder_path.with_suffix('.zip')
+            shutil.make_archive(str(zip_path.with_suffix('')), 'zip', str(folder_path))
+            logger.info(f"Zipped folder {folder_path} to {zip_path}", extra={"operation": "zip_folder"})
+            return zip_path
+        except Exception as e:
+            logger.error(f"Error zipping folder {folder_path}: {str(e)}", extra={"operation": "zip_folder"})
             raise
 
     def copy(self, source: str, destination: str) -> Path:
@@ -151,32 +179,7 @@ class FileManager:
             raise
 
     # ────────────────────────────────
-    # 📦 Zip
-    # ────────────────────────────────
-
-    def zip_folder(self, folder_name: str) -> Path:
-        """
-        Zip the contents of a folder.
-
-        Returns:
-            Path to the .zip file.
-        """
-        folder_path = self.base_dir / folder_name
-        try:
-            if not folder_path.is_dir():
-                logger.error(f"Not a directory: {folder_path}", extra={"operation": "zip_folder"})
-                raise NotADirectoryError(f"'{folder_path}' is not a folder.")
-            
-            zip_path = folder_path.with_suffix('.zip')
-            shutil.make_archive(str(zip_path.with_suffix('')), 'zip', str(folder_path))
-            logger.info(f"Zipped folder {folder_path} to {zip_path}", extra={"operation": "zip_folder"})
-            return zip_path
-        except Exception as e:
-            logger.error(f"Error zipping folder {folder_path}: {str(e)}", extra={"operation": "zip_folder"})
-            raise
-
-    # ────────────────────────────────
-    # 🗑 Delete / View / Inspect
+    # 🗑 Delete / View
     # ────────────────────────────────
 
     def delete(self, name: str) -> None:
