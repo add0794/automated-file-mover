@@ -1,3 +1,17 @@
+"""
+test_cli.py - Unit tests for cli.py.
+
+Purpose: Integration testing for the command-line interface (cli.py).
+
+What it checks:
+• Whether the CLI commands behave correctly when run from the terminal
+• Uses subprocess.run(...) to simulate real-world usage like:
+    python3 cli.py create-file notes.txt --text "hello"
+
+Example usage:
+    python -m pytest tests/test_cli.py
+"""
+
 import subprocess
 from pathlib import Path
 

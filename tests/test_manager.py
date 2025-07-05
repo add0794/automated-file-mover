@@ -1,3 +1,18 @@
+"""
+test_manager.py - Unit tests for FileManager class.
+
+Purpose: Unit testing individual methods in FileManager.
+
+What it checks:
+• If methods like create_file, move, delete, etc. work in isolation
+• Handles direct calls to Python functions
+• Focuses on logic and expected outputs
+• Tests edge cases and error handling at the method level
+
+Example usage:
+    python -m pytest tests/test_manager.py
+"""
+
 import sys
 from pathlib import Path
 import shutil
