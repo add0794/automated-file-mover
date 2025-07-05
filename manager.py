@@ -22,8 +22,7 @@ import smtplib
 from pathlib import Path
 from email.message import EmailMessage
 from typing import Optional
-from datetime import datetime
-import os
+from logger import logger
 
 class FileManager:
     def __init__(self, base_dir: Path = Path.home()):
@@ -44,10 +43,16 @@ class FileManager:
             FileExistsError: if the folder already exists.
         """
         folder_path = self.base_dir / name
-        if folder_path.exists():
-            raise FileExistsError(f"Folder '{folder_path}' already exists.")
-        folder_path.mkdir(parents=True)
-        return folder_path
+        try:
+            if folder_path.exists():
+                logger.error(f"Failed to create folder: {folder_path}", extra={"operation": "create_folder"})
+                raise FileExistsError(f"Folder '{folder_path}' already exists.")
+            folder_path.mkdir()
+            logger.info(f"Created folder: {folder_path}", extra={"operation": "create_folder"})
+            return folder_path
+        except Exception as e:
+            logger.error(f"Error creating folder: {str(e)}", extra={"operation": "create_folder"})
+            raise
 
     def create_file(self, name: str, content: Optional[str] = None, remove_chars: Optional[str] = None) -> Path:
         """
@@ -57,14 +62,20 @@ class FileManager:
             FileExistsError: if the file already exists.
         """
         file_path = self.base_dir / name
-        if file_path.exists():
-            raise FileExistsError(f"File '{file_path}' already exists.")
-        content = content or ""
-        if remove_chars:
-            for char in remove_chars:
-                content = content.replace(char, "")
-        file_path.write_text(content)
-        return file_path
+        try:
+            if file_path.exists():
+                logger.error(f"Failed to create file: {file_path}", extra={"operation": "create_file"})
+                raise FileExistsError(f"File '{file_path}' already exists.")
+            
+            if content and remove_chars:
+                content = content.replace(remove_chars, "")
+            
+            file_path.write_text(content or "")
+            logger.info(f"Created file: {file_path}", extra={"operation": "create_file"})
+            return file_path
+        except Exception as e:
+            logger.error(f"Error creating file: {str(e)}", extra={"operation": "create_file"})
+            raise
 
     # ────────────────────────────────
     # 🚚 Move / Rename / Copy
@@ -76,12 +87,23 @@ class FileManager:
         """
         src = self.base_dir / source
         dst = self.base_dir / destination
-        if not src.exists():
-            raise FileNotFoundError(f"Source '{src}' not found.")
-        if dst.is_dir():
-            dst = dst / src.name
-        shutil.move(str(src), str(dst))
-        return dst
+        try:
+            if not src.exists():
+                logger.error(f"Source not found: {src}", extra={"operation": "move"})
+                raise FileNotFoundError(f"Source '{src}' does not exist.")
+            if dst.exists():
+                logger.error(f"Destination exists: {dst}", extra={"operation": "move"})
+                raise FileExistsError(f"Destination '{dst}' already exists.")
+            
+            if src.is_dir():
+                shutil.move(str(src), str(dst))
+            else:
+                src.rename(dst)
+            logger.info(f"Moved {src} to {dst}", extra={"operation": "move"})
+            return dst
+        except Exception as e:
+            logger.error(f"Error moving {src} to {dst}: {str(e)}", extra={"operation": "move"})
+            raise
 
     def rename(self, old: str, new: str) -> Path:
         """
@@ -89,10 +111,20 @@ class FileManager:
         """
         src = self.base_dir / old
         dst = self.base_dir / new
-        if not src.exists():
-            raise FileNotFoundError(f"Source '{src}' not found.")
-        src.rename(dst)
-        return dst
+        try:
+            if not src.exists():
+                logger.error(f"Source not found: {src}", extra={"operation": "rename"})
+                raise FileNotFoundError(f"Source '{src}' does not exist.")
+            if dst.exists():
+                logger.error(f"Destination exists: {dst}", extra={"operation": "rename"})
+                raise FileExistsError(f"Destination '{dst}' already exists.")
+            
+            src.rename(dst)
+            logger.info(f"Renamed {src} to {dst}", extra={"operation": "rename"})
+            return dst
+        except Exception as e:
+            logger.error(f"Error renaming {src} to {dst}: {str(e)}", extra={"operation": "rename"})
+            raise
 
     def copy(self, source: str, destination: str) -> Path:
         """
@@ -100,11 +132,23 @@ class FileManager:
         """
         src = self.base_dir / source
         dst = self.base_dir / destination
-        if src.is_dir():
-            shutil.copytree(src, dst)
-        else:
-            shutil.copy2(src, dst)
-        return dst
+        try:
+            if not src.exists():
+                logger.error(f"Source not found: {src}", extra={"operation": "copy"})
+                raise FileNotFoundError(f"Source '{src}' does not exist.")
+            if dst.exists():
+                logger.error(f"Destination exists: {dst}", extra={"operation": "copy"})
+                raise FileExistsError(f"Destination '{dst}' already exists.")
+            
+            if src.is_dir():
+                shutil.copytree(src, dst)
+            else:
+                shutil.copy2(src, dst)
+            logger.info(f"Copied {src} to {dst}", extra={"operation": "copy"})
+            return dst
+        except Exception as e:
+            logger.error(f"Error copying {src} to {dst}: {str(e)}", extra={"operation": "copy"})
+            raise
 
     # ────────────────────────────────
     # 📦 Zip
@@ -118,11 +162,18 @@ class FileManager:
             Path to the .zip file.
         """
         folder_path = self.base_dir / folder_name
-        if not folder_path.is_dir():
-            raise NotADirectoryError(f"'{folder_path}' is not a folder.")
-        zip_path = folder_path.with_suffix('.zip')
-        shutil.make_archive(str(zip_path.with_suffix('')), 'zip', str(folder_path))
-        return zip_path
+        try:
+            if not folder_path.is_dir():
+                logger.error(f"Not a directory: {folder_path}", extra={"operation": "zip_folder"})
+                raise NotADirectoryError(f"'{folder_path}' is not a folder.")
+            
+            zip_path = folder_path.with_suffix('.zip')
+            shutil.make_archive(str(zip_path.with_suffix('')), 'zip', str(folder_path))
+            logger.info(f"Zipped folder {folder_path} to {zip_path}", extra={"operation": "zip_folder"})
+            return zip_path
+        except Exception as e:
+            logger.error(f"Error zipping folder {folder_path}: {str(e)}", extra={"operation": "zip_folder"})
+            raise
 
     # ────────────────────────────────
     # 🗑 Delete / View / Inspect
@@ -133,26 +184,44 @@ class FileManager:
         Delete a file or folder (recursively if folder).
         """
         path = self.base_dir / name
-        if not path.exists():
-            raise FileNotFoundError(f"'{path}' does not exist.")
-        if path.is_dir():
-            shutil.rmtree(path)
-        else:
-            path.unlink()
+        try:
+            if not path.exists():
+                logger.error(f"File/folder not found: {path}", extra={"operation": "delete"})
+                raise FileNotFoundError(f"'{path}' does not exist.")
+            
+            if path.is_dir():
+                shutil.rmtree(str(path))
+            else:
+                path.unlink()
+            logger.info(f"Deleted {path}", extra={"operation": "delete"})
+        except Exception as e:
+            logger.error(f"Error deleting {path}: {str(e)}", extra={"operation": "delete"})
+            raise
 
     def view(self, name: str) -> str:
         """
         Return contents of a file, or list contents of a folder.
         """
         path = self.base_dir / name
-        if not path.exists():
-            raise FileNotFoundError(f"'{path}' does not exist.")
-        if path.is_file():
-            return path.read_text()
-        elif path.is_dir():
-            return "\n".join([p.name for p in path.iterdir()])
-        else:
-            return f"{name} exists but is not a regular file or directory."
+        try:
+            if not path.exists():
+                logger.error(f"File/folder not found: {path}", extra={"operation": "view"})
+                raise FileNotFoundError(f"'{path}' does not exist.")
+            
+            if path.is_file():
+                content = path.read_text()
+                logger.info(f"Viewed file contents: {path}", extra={"operation": "view"})
+                return content
+            elif path.is_dir():
+                contents = "\n".join([p.name for p in path.iterdir()])
+                logger.info(f"Listed directory contents: {path}", extra={"operation": "view"})
+                return contents
+            else:
+                logger.error(f"Path is neither file nor directory: {path}", extra={"operation": "view"})
+                return f"{name} exists but is not a regular file or directory."
+        except Exception as e:
+            logger.error(f"Error viewing {path}: {str(e)}", extra={"operation": "view"})
+            raise
 
     # ────────────────────────────────
     # 📬 Email Support
@@ -163,42 +232,59 @@ class FileManager:
         Email a file or zipped folder to a recipient.
         """
         path = self.base_dir / name
-        if not path.exists():
-            raise FileNotFoundError(f"'{path}' does not exist.")
-        if path.is_dir():
-            path = self.zip_folder(name)
+        try:
+            if not path.exists():
+                logger.error(f"File/folder not found: {path}", extra={"operation": "email"})
+                raise FileNotFoundError(f"'{path}' does not exist.")
+            
+            if path.is_dir():
+                path = self.zip_folder(name)
 
-        msg = EmailMessage()
-        msg['Subject'] = f"File/Folder: {name}"
-        msg['From'] = sender
-        msg['To'] = recipient
-        msg.set_content(f"Attached is '{name}' from {self.base_dir}.")
+            msg = EmailMessage()
+            msg['Subject'] = f"File/Folder: {name}"
+            msg['From'] = sender
+            msg['To'] = recipient
+            msg.set_content(f"Attached is '{name}' from {self.base_dir}.")
 
-        with path.open('rb') as f:
-            msg.add_attachment(f.read(), maintype='application', subtype='octet-stream', filename=path.name)
+            with path.open('rb') as f:
+                msg.add_attachment(f.read(), maintype='application', subtype='octet-stream', filename=path.name)
 
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-            smtp.login(sender, password)
-            smtp.send_message(msg)
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+                smtp.login(sender, password)
+                smtp.send_message(msg)
+                logger.info(f"Emailed {path} to {recipient}", extra={"operation": "email"})
+
+        except Exception as e:
+            logger.error(f"Error emailing {path}: {str(e)}", extra={"operation": "email"})
+            raise
 
     def email_notification(self, name: str, recipient: str, sender: str, password: str) -> None:
         """
         Send an email notification about the presence or status of a file or folder.
         """
         path = self.base_dir / name
-        if not path.exists():
-            raise FileNotFoundError(f"'{path}' does not exist.")
+        try:
+            if not path.exists():
+                logger.error(f"File/folder not found: {path}", extra={"operation": "email_notification"})
+                raise FileNotFoundError(f"'{path}' does not exist.")
+            
+            msg = EmailMessage()
+            msg['Subject'] = f"Status Update: {name}"
+            msg['From'] = sender
+            msg['To'] = recipient
+            
+            if path.is_file():
+                size = path.stat().st_size
+                msg.set_content(f"File '{name}' exists. Size: {size} bytes.")
+            else:
+                num_items = len(list(path.iterdir()))
+                msg.set_content(f"Folder '{name}' exists. Contains {num_items} items.")
+            
+            with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+                smtp.login(sender, password)
+                smtp.send_message(msg)
+                logger.info(f"Sent notification about {path} to {recipient}", extra={"operation": "email_notification"})
 
-        msg = EmailMessage()
-        msg['Subject'] = f"Notification: {name}"
-        msg['From'] = sender
-        msg['To'] = recipient
-        msg.set_content(
-            f"The file or folder '{name}' is located at:\n\n{path.resolve()}\n\n"
-            f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
-            f"Host: {os.uname().nodename}"
-        )
-
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-            smtp.login(sender, password)
-            smtp.send_message(msg)
+        except Exception as e:
+            logger.error(f"Error sending notification about {path}: {str(e)}", extra={"operation": "email_notification"})
+            raise

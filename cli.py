@@ -22,6 +22,7 @@ import argparse
 from pathlib import Path
 from manager import FileManager
 import getpass
+from logger import logger
 
 
 def add_common_args(subparser):
@@ -81,21 +82,27 @@ def main():
     try:
         if args.command == "create-file":
             result = fm.create_file(args.name, content=args.text, remove_chars=args.remove)
+            logger.info(f"Created file: {result}", extra={"operation": "cli_create_file"})
             print(f"✅ Created file: {result}")
         elif args.command == "create-folder":
             result = fm.create_folder(args.name)
+            logger.info(f"Created folder: {result}", extra={"operation": "cli_create_folder"})
             print(f"📁 Created folder: {result}")
         elif args.command == "move":
             result = fm.move(args.source, args.destination)
+            logger.info(f"Moved {args.source} to {result}", extra={"operation": "cli_move"})
             print(f"🚚 Moved to: {result}")
         elif args.command == "rename":
             result = fm.rename(args.old, args.new)
+            logger.info(f"Renamed {args.old} to {result}", extra={"operation": "cli_rename"})
             print(f"✏️ Renamed to: {result}")
         elif args.command == "delete":
             fm.delete(args.name)
+            logger.info(f"Deleted: {args.name}", extra={"operation": "cli_delete"})
             print(f"🗑 Deleted: {args.name}")
         elif args.command == "view":
             content = fm.view(args.name)
+            logger.info(f"Viewed: {args.name}", extra={"operation": "cli_view"})
             print(content)
         else:
             parser.print_help()
@@ -115,6 +122,7 @@ def main():
             )
 
     except Exception as e:
+        logger.error(f"CLI Error: {str(e)}", extra={"operation": "cli_error"})
         print(f"❌ Error: {e}")
 
 if __name__ == "__main__":
