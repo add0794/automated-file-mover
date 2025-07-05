@@ -19,7 +19,6 @@ Example usage:
 """
 
 import argparse
-from pathlib import Path
 from manager import FileManager
 import getpass
 from logger import logger
